@@ -19,7 +19,7 @@ const PADDLE_DEPTH = 0.5;
 const PADDLE_SPEED = 0.3;
 
 const BALL_RADIUS = 0.08;
-const BALL_SPEED_INITIAL = { x: 0.04, y: 0.04, z: 0 };
+const BALL_SPEED_INITIAL = { x: 0.02, y: 0.05, z: 0 };
 
 const Paddle = forwardRef(({ position, setPosition }, ref) => {
 
@@ -30,7 +30,7 @@ const Paddle = forwardRef(({ position, setPosition }, ref) => {
             } else if (e.key === 'ArrowRight') {
                 setPosition((prev) => [Math.min(prev[0] + PADDLE_SPEED, 4 - PADDLE_WIDTH / 2), prev[1], prev[2]]);
             }
-            console.log(ref.current.position);
+            
         };
 
         window.addEventListener('keydown', handleKeyDown);
@@ -58,6 +58,8 @@ function Ball({ position, velocity, setVelocity, bricks, setBricks, setScore, ga
         ballRef.current.position.y += velocity.y;
         ballRef.current.position.z += velocity.z;
 
+        
+
         // Wall collisions (left/right)
         if (Math.abs(ballRef.current.position.x) > 4 - BALL_RADIUS) {
             setVelocity((prev) => ({ ...prev, x: -prev.x }));
@@ -81,13 +83,15 @@ function Ball({ position, velocity, setVelocity, bricks, setBricks, setScore, ga
             ballRef.current.position.y > -2 - BALL_RADIUS &&
             ballRef.current.position.x > -PADDLE_WIDTH / 2 + paddleRef.current.position.x - BALL_RADIUS &&
             ballRef.current.position.x < PADDLE_WIDTH / 2 + paddleRef.current.position.x + BALL_RADIUS) {
-            setVelocity((prev) => ({ ...prev, y: -Math.abs(prev.y) }));
+            setVelocity((prev) => ({ ...prev, y: -prev.y }));
             // Adjust horizontal velocity based on where the ball hits the paddle
-            const relativeIntersectX = ballRef.current.position.x - paddleRef.current.position.x;
-            const normalizedIntersectX = relativeIntersectX / (PADDLE_WIDTH / 2);
-            setVelocity((prev) => ({ ...prev, x: prev.x + normalizedIntersectX * 0.02 }));
+            //const relativeIntersectX = ballRef.current.position[0] - paddleRef.current.position[0];
+            //const normalizedIntersectX = relativeIntersectX / (PADDLE_WIDTH / 2);
+            setVelocity((prev) => ({ ...prev, x:  prev.x}));
         }
-       
+       console.log("paddleY:", paddleY);
+       console.log("ballRef:", ballRef.current.position);
+       console.log("paddleRef:", paddleRef.current.position);
 
         // Brick collision
         const newBricks = [...bricks];
@@ -158,7 +162,7 @@ function Bricks({ initialBricks }) {
 
 function Game() {
     const [paddlePosition, setPaddlePosition] = useState([0, -2, 0]);
-    const [ballPosition, setBallPosition] = useState([0, -1.5, 0]);
+    const [ballPosition, setBallPosition] = useState([0, -1, 0]);
     const [ballVelocity, setBallVelocity] = useState(BALL_SPEED_INITIAL);
     const [bricks, setBricks] = useState([]);
     const [score, setScore] = useState(0);
@@ -192,14 +196,14 @@ function Game() {
 
     const resetGame = () => {
         setPaddlePosition([0, -2, 0]);
-        setBallPosition([0, -1.5, 0]);
+        setBallPosition([0, -1, 0]);
         setBallVelocity(BALL_SPEED_INITIAL);
         initializeBricks();
         setScore(0);
         setGameOver(false);
         setGameStarted(false);
     };
-
+      
     const startGame = () => {
         if (!gameStarted) {
             setBallVelocity(BALL_SPEED_INITIAL);
@@ -212,7 +216,7 @@ function Game() {
 
     return (
         <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
-            <Canvas camera={{ position: [0, 0, 8], fov: 50 }}>
+            <Canvas camera={{ position: [0, 0, 8], fov: 40 }}>
                 <ambientLight intensity={0.5} />
                 <directionalLight position={[10, 10, 5]} intensity={0.8} />
                 <Paddle position={paddlePosition} setPosition={setPaddlePosition} ref={paddleRef} />
@@ -230,6 +234,7 @@ function Game() {
                 <Bricks initialBricks={bricks} />
                 {/* Walls */}
                 <Box position={[0, 3.5, 0]} args={[8, 1, 0.1]} material-color="#4a4e69" /> {/* Top */}
+                <Box position={[0, -3.5, 0]} args={[8, 1, 0.1]} material-color="#4a4e69" /> {/* Bottom */}
                 <Box position={[-4.5, 0, 0]} args={[1, 7, 0.1]} material-color="#4a4e69" /> {/* Left */}
                 <Box position={[4.5, 0, 0]} args={[1, 7, 0.1]} material-color="#4a4e69" />  {/* Right */}
             </Canvas>
